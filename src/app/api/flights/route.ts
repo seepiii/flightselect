@@ -4,7 +4,7 @@ import { getAirlineAmenities } from '@/lib/airline-amenities';
 import { isAllowedAirline } from '@/lib/airline-constants';
 
 const AVIATION_STACK_API_KEY = process.env.AVIATION_STACK_API_KEY;
-const API_URL = 'http://api.aviationstack.com/v1/flights';
+const API_URL = 'https://api.aviationstack.com/v1/flights';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
