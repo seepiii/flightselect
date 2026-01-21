@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { Flight, amenities, generateSeatMap } from '@/lib/shared';
+import { Flight, generateSeatMap } from '@/lib/shared';
 import { getAirlineAmenities } from '@/lib/airline-amenities';
+import { isAllowedAirline } from '@/lib/airline-constants';
 
 const AVIATION_STACK_API_KEY = process.env.AVIATION_STACK_API_KEY;
 const API_URL = 'http://api.aviationstack.com/v1/flights';
@@ -33,8 +34,13 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: data.error.message }, { status: 500 });
         }
 
-        // Transform data to our Flight interface
-        const flights: Flight[] = data.data.map((flight: any) => {
+        // Filter to only include selected domestic carriers
+        const filteredData = (data.data || []).filter((flight: any) =>
+            isAllowedAirline(flight?.airline?.name, flight?.airline?.iata)
+        );
+
+        // Transform filtered data to our Flight interface
+        const flights: Flight[] = filteredData.map((flight: any, index: number) => {
             const isLanded = flight.flight_status === 'landed';
             const isInAir = flight.flight_status === 'active';
 
@@ -74,8 +80,13 @@ export async function GET(request: Request) {
                 // So we treat the date as if it's in UTC and extract the UTC components to avoid browser shifting.
             };
 
+            // Create unique ID by combining flight number with departure time and index
+            const flightIata = flight.flight.iata || `${flight.airline.iata}${flight.flight.number}`;
+            const depTime = flight.departure.scheduled ? new Date(flight.departure.scheduled).getTime() : Date.now();
+            const uniqueId = `${flightIata}-${depTime}-${index}`;
+
             return {
-                id: flight.flight.iata || `flt-${Math.random()}`,
+                id: uniqueId,
                 airline: flight.airline.name,
                 flightNumber: `${flight.airline.iata}${flight.flight.number}`,
                 departureTime: formatLocalTime(flight.departure.scheduled),

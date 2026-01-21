@@ -1,16 +1,13 @@
 import { Flight, Amenity, generateSeatMap, amenities } from './shared';
+import { isAllowedAirline } from './airline-constants';
 
+// Limit generator to the same set of domestic-focused carriers we surface from the API
 const AIRLINES = [
     { name: 'United Airlines', code: 'UA', isDomestic: true },
     { name: 'American Airlines', code: 'AA', isDomestic: true },
     { name: 'Delta Air Lines', code: 'DL', isDomestic: true },
-    { name: 'Southwest Airlines', code: 'WN', isDomestic: true },
-    { name: 'British Airways', code: 'BA', isDomestic: false },
-    { name: 'Lufthansa', code: 'LH', isDomestic: false },
-    { name: 'Air France', code: 'AF', isDomestic: false },
-    { name: 'Emirates', code: 'EK', isDomestic: false },
-    { name: 'Qatar Airways', code: 'QR', isDomestic: false },
-    { name: 'Singapore Airlines', code: 'SQ', isDomestic: false },
+    { name: 'Spirit Airlines', code: 'NK', isDomestic: true },
+    { name: 'Frontier Airlines', code: 'F9', isDomestic: true },
 ];
 
 const AIRCRAFT_TYPES = [
@@ -137,15 +134,8 @@ export function generateFlights(origin: string, destination: string, dateStr?: s
     const distance = getRandomInt(500, 9000); // Approximate distance
     const flightDurationMinutes = Math.floor(distance / 500 * 60 + 30); // Rough estimate: 500mph + 30min taxi
 
-    // Determine if route is likely domestic (US)
-    // Simple heuristic: US airport codes are 3 letters. International often 3 but we can assume domestic if both are known US hubs or short distance
-    // Better heuristic: Check if airline list should be restricted
-    const isDomestic = ['EWR', 'JFK', 'LGA', 'SFO', 'LAX', 'ORD', 'DFW', 'IAH', 'HOU', 'MIA', 'ATL', 'DEN', 'SEA', 'BOS', 'MCO', 'LAS'].includes(origin.toUpperCase()) &&
-        ['EWR', 'JFK', 'LGA', 'SFO', 'LAX', 'ORD', 'DFW', 'IAH', 'HOU', 'MIA', 'ATL', 'DEN', 'SEA', 'BOS', 'MCO', 'LAS'].includes(destination.toUpperCase());
-
-    const availableAirlines = isDomestic
-        ? AIRLINES.filter(a => a.isDomestic)
-        : AIRLINES;
+    // For generator we always use the allowed domestic-focused carriers list
+    const availableAirlines = AIRLINES;
 
     for (let i = 0; i < numFlights; i++) {
         const airline = getRandomElement(availableAirlines);
@@ -212,7 +202,7 @@ export function generateFlights(origin: string, destination: string, dateStr?: s
             progress,
             terminal: getRandomElement(['A', 'B', 'C', '1', '2', '3', '4', '5']),
             gate: `${getRandomElement(['A', 'B', 'C', 'D'])}${getRandomInt(1, 99)}`,
-            registration: `N${getRandomInt(100, 999)}${getRandomElement(['UA', 'AA', 'DL', 'XX'])}`,
+            registration: `N${getRandomInt(100, 999)}${getRandomElement(['UA', 'AA', 'DL', 'NK', 'F9'])}`,
             aircraft: {
                 id: aircraft.id,
                 model: aircraft.model,
