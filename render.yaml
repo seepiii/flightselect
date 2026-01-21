@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: flightselect
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AVIATION_STACK_API_KEY
+        sync: false  # Set this in Render dashboard
+    healthCheckPath: /
+    autoDeploy: true
+
